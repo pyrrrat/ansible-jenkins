@@ -26,6 +26,28 @@
   when: prefix is defined and ansible_os_family == "Debian"
   lineinfile: dest=/etc/default/jenkins regexp=^PREFIX= line=PREFIX={{prefix}}
 
+- name: Configure Jenkins Listen for RedHat
+  when: listen is defined and ansible_os_family == "RedHat"
+  lineinfile: dest=/etc/sysconfig/jenkins regexp=^HTTP_HOST= line=HTTP_HOST={{listen}} insertbefore=JENKINS_ARGS
+
+- name: Configure Jenkins Listen for Debian
+  when: listen is defined and ansible_os_family == "Debian"
+  lineinfile: dest=/etc/default/jenkins regexp=^HTTP_HOST= line=HTTP_HOST={{listen}} insertbefore=JENKINS_ARGS
+
+- name: Configure Jenkins args for RedHat
+  when: listen is defined and ansible_os_family == "RedHat"
+  lineinfile:
+    dest: /etc/sysconfig/jenkins
+    regexp: ^JENKINS_ARGS=
+    line: JENKINS_ARGS="--webroot=/var/cache/$NAME/war --httpPort=$HTTP_PORT --httpListenAddress=$HTTP_HOST --ajp13Port=$AJP_PORT"
+
+- name: Configure Jenkins args for Debian
+  when: listen is defined and ansible_os_family == "Debian"
+  lineinfile:
+    dest: /etc/default/jenkins
+    regexp: ^JENKINS_ARGS=
+    line: JENKINS_ARGS="--webroot=/var/cache/$NAME/war --httpPort=$HTTP_PORT --httpListenAddress=$HTTP_HOST --ajp13Port=$AJP_PORT"
+
 - name: Configure Jenkins E-mail
   when: email is defined
   template: src=hudson.tasks.Mailer.xml.j2 dest={{ jenkins_lib }}/hudson.tasks.Mailer.xml owner=jenkins group=jenkins mode=0644
